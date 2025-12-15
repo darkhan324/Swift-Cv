@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read/write their own profile data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Users can CRUD their own resumes
+    match /resumes/{resumeId} {
+      allow read, write: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null &&
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    // Templates are readable by all authenticated users
+    match /templates/{templateId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only admins can create templates
+    }
+  }
+}
